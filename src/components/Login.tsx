@@ -70,11 +70,11 @@ export const Login: React.FC = () => {
 
         <div className="mt-6 text-center">
           <div className="bg-white rounded-lg p-4 shadow-sm">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">ডেমো কী:</h3>
+            <h3 className="text-sm font-medium text-gray-900 mb-2">Demo Keys:</h3>
             <div className="text-xs space-y-1 text-gray-600">
-              <div><strong>অ্যাডমিন:</strong> admin123</div>
-              <div><strong>ম্যানেজার:</strong> manager123</div>
-              <div><strong>ইউজার:</strong> user1key, user2key, user3key</div>
+              <div><strong>Admin:</strong> admin123</div>
+              <div><strong>Manager:</strong> manager123</div>
+              <div><strong>User:</strong> user1key, user2key, user3key</div>
             </div>
           </div>
         </div>

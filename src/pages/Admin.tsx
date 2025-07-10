@@ -105,11 +105,12 @@ export const Admin: React.FC = () => {
       });
 
       toast.success(`🎉 সফলভাবে ${proxies.length}টি প্রক্সি আপলোড সম্পন্ন হয়েছে!`);
+      toast.success(`🎉 Successfully uploaded ${proxies.length} proxies!`);
       setFile(null);
       fetchUploadHistory();
       fetchProxyCount();
     } catch (error) {
-      toast.error('❌ আপলোড করতে ত্রুটি হয়েছে');
+      toast.error('❌ Error uploading file');
       console.error('Error uploading file:', error);
     }
     setLoading(false);
@@ -124,10 +125,10 @@ export const Admin: React.FC = () => {
 
       if (error) throw error;
       
-      toast.success('আপলোড ইতিহাস মুছে ফেলা হয়েছে');
+      toast.success('Upload history deleted');
       fetchUploadHistory();
     } catch (error) {
-      toast.error('মুছতে ত্রুটি');
+      toast.error('Error deleting');
       console.error('Error deleting upload history:', error);
     }
   };
@@ -146,7 +147,7 @@ export const Admin: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('নতুন ইউজার তৈরি হয়েছে');
+      toast.success('New user created');
       setNewUser({
         username: '',
         accessKey: '',
@@ -155,7 +156,7 @@ export const Admin: React.FC = () => {
       });
       fetchUsers();
     } catch (error) {
-      toast.error('ইউজার তৈরি করতে ত্রুটি');
+      toast.error('Error creating user');
       console.error('Error creating user:', error);
     }
   };
@@ -169,10 +170,10 @@ export const Admin: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('ইউজারের সীমা আপডেট হয়েছে');
+      toast.success('User limit updated');
       fetchUsers();
     } catch (error) {
-      toast.error('সীমা আপডেট করতে ত্রুটি');
+      toast.error('Error updating limit');
       console.error('Error updating user limit:', error);
     }
   };
@@ -186,10 +187,10 @@ export const Admin: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('ইউজারের স্ট্যাটাস আপডেট হয়েছে');
+      toast.success('User status updated');
       fetchUsers();
     } catch (error) {
-      toast.error('স্ট্যাটাস আপডেট করতে ত্রুটি');
+      toast.error('Error updating status');
       console.error('Error updating user status:', error);
     }
   };
@@ -275,11 +276,11 @@ export const Admin: React.FC = () => {
   };
 
   const deleteAllProxies = async () => {
-    if (!confirm(`আপনি কি নিশ্চিত যে ডাটাবেস থেকে সব ${totalProxies}টি প্রক্সি মুছে ফেলতে চান? এই কাজটি আর ফিরিয়ে আনা যাবে না।`)) {
+    if (!confirm(`Are you sure you want to delete all ${totalProxies} proxies from the database? This action cannot be undone.`)) {
       return;
     }
 
-    if (!confirm('এটি স্থায়ীভাবে সব প্রক্সি ডেটা মুছে ফেলবে। আপনি কি সত্যিই এটি করতে চান?')) {
+    if (!confirm('This will permanently delete all proxy data. Do you really want to do this?')) {
       return;
     }
 
@@ -291,10 +292,10 @@ export const Admin: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('🗑️ সব প্রক্সি সফলভাবে মুছে ফেলা হয়েছে');
+      toast.success('🗑️ All proxies successfully deleted');
       fetchProxyCount();
     } catch (error) {
-      toast.error('❌ প্রক্সি মুছতে ত্রুটি হয়েছে');
+      toast.error('❌ Error deleting proxies');
       console.error('Error deleting all proxies:', error);
     }
   };
@@ -302,7 +303,7 @@ export const Admin: React.FC = () => {
   if (user?.role !== 'admin' && user?.role !== 'manager') {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600">শুধুমাত্র অ্যাডমিন এবং ম্যানেজার এই পেজ দেখতে পারে</p>
+        <p className="text-red-600">Only admins and managers can view this page</p>
       </div>
     );
   }
@@ -340,7 +341,7 @@ export const Admin: React.FC = () => {
           <form onSubmit={handleFileUpload} className="space-y-4">
             <div>
               <label htmlFor="file" className="block text-sm font-medium text-gray-700 mb-2">
-                TXT ফাইল নির্বাচন করুন
+                Select TXT File
               </label>
               <input
                 type="file"
@@ -362,12 +363,12 @@ export const Admin: React.FC = () => {
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <div className="absolute inset-0 w-5 h-5 border-2 border-transparent border-t-blue-200 rounded-full animate-ping"></div>
                   </div>
-                  <span className="animate-pulse">আপলোড শেষ না হওয়া পর্যন্ত অপেক্ষা করুন...</span>
+                  <span className="animate-pulse">Please wait until upload is complete...</span>
                 </>
               ) : (
                 <>
                   <Upload className="w-5 h-5" />
-                  <span>আপলোড করুন</span>
+                  <span>Upload</span>
                 </>
               )}
             </button>
@@ -378,7 +379,7 @@ export const Admin: React.FC = () => {
               <div className="flex items-center">
                 <Database className="h-4 w-4 text-blue-400 mr-2" />
                 <p className="text-blue-700 text-sm">
-                  <strong>ডাটাবেস স্ট্যাটাস:</strong> সিস্টেমে {totalProxies}টি প্রক্সি উপলব্ধ রয়েছে।
+                  <strong>Database Status:</strong> {totalProxies} proxies available in the system.
                 </p>
               </div>
             </div>
@@ -390,16 +391,16 @@ export const Admin: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
             <Users className="mr-2 h-5 w-5" />
-            ইউজার ম্যানেজমেন্ট
+            User Management
           </h2>
           
           {/* Create New User */}
-          <form onSubmit={createUser} className="mb-6 bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-md font-medium text-gray-800 mb-3">নতুন ইউজার তৈরি করুন</h3>
+              Total Proxies: <span className="font-semibold text-blue-600">{totalProxies}</span>
+            <h3 className="text-md font-medium text-gray-800 mb-3">Create New User</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <input
                 type="text"
-                placeholder="ইউজারনেম"
+                placeholder="Username"
                 value={newUser.username}
                 onChange={(e) => setNewUser({...newUser, username: e.target.value})}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -407,7 +408,7 @@ export const Admin: React.FC = () => {
               />
               <input
                 type="text"
-                placeholder="এক্সেস কী"
+                placeholder="Access Key"
                 value={newUser.accessKey}
                 onChange={(e) => setNewUser({...newUser, accessKey: e.target.value})}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -418,13 +419,13 @@ export const Admin: React.FC = () => {
                 onChange={(e) => setNewUser({...newUser, role: e.target.value as 'admin' | 'manager' | 'user'})}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="user">ইউজার</option>
-                <option value="manager">ম্যানেজার</option>
-                <option value="admin">অ্যাডমিন</option>
+                <option value="user">User</option>
+                <option value="manager">Manager</option>
+                <option value="admin">Admin</option>
               </select>
               <input
                 type="number"
-                placeholder="দৈনিক সীমা"
+                placeholder="Daily Limit"
                 value={newUser.dailyLimit}
                 onChange={(e) => setNewUser({...newUser, dailyLimit: parseInt(e.target.value)})}
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -435,7 +436,7 @@ export const Admin: React.FC = () => {
               type="submit"
               className="mt-3 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
             >
-              ইউজার তৈরি করুন
+              Create User
             </button>
           </form>
 
@@ -445,22 +446,22 @@ export const Admin: React.FC = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ফাইলের নাম
+                    Username
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    এক্সেস কী
+                    Access Key
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    প্রক্সি সংখ্যা
+                    Role
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    পজিশন
+                    Daily Limit
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    তারিখ
+                    Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    অ্যাকশন
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -501,7 +502,7 @@ export const Admin: React.FC = () => {
                           ? 'bg-orange-100 text-orange-800'
                           : 'bg-gray-100 text-gray-800'
                       }`}>
-                        {userData.role === 'admin' ? 'অ্যাডমিন' : userData.role === 'manager' ? 'ম্যানেজার' : 'ইউজার'}
+                        {userData.role === 'admin' ? 'Admin' : userData.role === 'manager' ? 'Manager' : 'User'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -525,7 +526,7 @@ export const Admin: React.FC = () => {
                             : 'bg-red-100 text-red-800 hover:bg-red-200'
                         }`}
                       >
-                        {userData.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
+                        {userData.is_active ? 'Active' : 'Inactive'}
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -585,10 +586,10 @@ export const Admin: React.FC = () => {
         {/* Upload History Section - Only for Admin */}
         {user?.role === 'admin' && (
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">আপলোড ইতিহাস</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload History</h2>
           
           {uploadHistory.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">কোনো আপলোড ইতিহাস নেই</p>
+            <p className="text-gray-500 text-center py-8">No upload history</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">

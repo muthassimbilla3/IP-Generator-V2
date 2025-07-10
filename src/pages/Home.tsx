@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Proxy } from '../lib/supabase';
-import { Download, AlertTriangle, FileText, FileSpreadsheet } from 'lucide-react';
+import { Download, AlertTriangle, FileText, FileSpreadsheet, Copy } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const Home: React.FC = () => {
@@ -174,6 +174,39 @@ export const Home: React.FC = () => {
     }
   };
 
+  const copyAllProxies = async () => {
+    if (proxies.length === 0) return;
+
+    try {
+      // Check if all proxies are still available
+      const proxyIds = proxies.map(p => p.id);
+      const { data: currentProxies, error } = await supabase
+        .from('proxies')
+        .select('*')
+        .in('id', proxyIds)
+        .eq('is_used', false);
+
+      if (error) throw error;
+
+      if (!currentProxies || currentProxies.length !== proxies.length) {
+        toast.error('Some IPs have been used by others. Please generate again.');
+        return;
+      }
+
+      // Copy all to clipboard
+      const allProxies = proxies.map(p => p.proxy_string).join('\n');
+      await navigator.clipboard.writeText(allProxies);
+      
+      toast.success(`${proxies.length} IPs copied to clipboard`);
+
+      await markProxiesAsUsed();
+      setProxies([]);
+    } catch (error) {
+      toast.error('Error copying all IPs');
+      console.error('Error copying all proxies:', error);
+    }
+  };
+
   const remainingLimit = user ? user.daily_limit - usageToday : 0;
 
   return (
@@ -249,6 +282,13 @@ export const Home: React.FC = () => {
                 Generated IPs ({proxies.length})
               </h2>
               <div className="flex items-center space-x-3">
+                <button
+                  onClick={copyAllProxies}
+                  className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+                >
+                  <Copy size={16} />
+                  <span>Copy All</span>
+                </button>
                 <button
                   onClick={downloadTXT}
                   className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"

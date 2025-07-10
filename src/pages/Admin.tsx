@@ -255,6 +255,12 @@ export const Admin: React.FC = () => {
   };
 
   const deleteUser = async (userId: string, username: string) => {
+    // Prevent deletion of the current logged-in user
+    if (userId === user?.id) {
+      toast.error('You cannot delete your own account');
+      return;
+    }
+
     if (!confirm(`Are you sure you want to delete user "${username}"?`)) {
       return;
     }
@@ -563,7 +569,7 @@ export const Admin: React.FC = () => {
                           >
                             <RotateCcw size={16} />
                           </button>
-                          {userData.role !== 'admin' && (
+                          {userData.role !== 'admin' && userData.id !== user?.id && (
                             <button
                               onClick={() => deleteUser(userData.id, userData.username)}
                               className="text-red-600 hover:text-red-800"

@@ -395,7 +395,7 @@ export const Admin: React.FC = () => {
           </h2>
           
           {/* Create New User */}
-              Total Proxies: <span className="font-semibold text-blue-600">{totalProxies}</span>
+          <form onSubmit={createUser} className="mb-6">
             <h3 className="text-md font-medium text-gray-800 mb-3">Create New User</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <input

@@ -215,6 +215,15 @@ export const Status: React.FC = () => {
               <div>
                 <p className="text-orange-600 text-sm font-medium">মোট প্রক্সি</p>
                 <p className="text-2xl font-bold text-orange-900">{systemStats.totalProxies}</p>
+                {systemStats.totalProxies > 0 && user?.role === 'manager' && (
+                  <button
+                    onClick={deleteAllProxies}
+                    className="mt-2 flex items-center space-x-1 bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-all duration-300 transform hover:scale-105 text-xs font-medium shadow-md hover:shadow-lg"
+                  >
+                    <Trash2 size={12} />
+                    <span>সব মুছুন</span>
+                  </button>
+                )}
               </div>
               <Calendar className="h-8 w-8 text-orange-600" />
             </div>

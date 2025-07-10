@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Proxy } from '../lib/supabase';
-import { Copy, Download, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Download, AlertTriangle, FileText, FileSpreadsheet } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const Home: React.FC = () => {
@@ -87,75 +87,12 @@ export const Home: React.FC = () => {
     setLoading(false);
   };
 
-  const copyProxy = async (proxy: Proxy) => {
-    try {
-      // Check if proxy is still available
-      const { data: currentProxy, error } = await supabase
-        .from('proxies')
-        .select('*')
-        .eq('id', proxy.id)
-        .single();
-
-      if (error || !currentProxy || currentProxy.is_used) {
-        toast.error('This IP has been used by someone else. Please generate again.');
-        setProxies(prev => prev.filter(p => p.id !== proxy.id));
-        return;
-      }
-
-      // Mark as used and copy to clipboard
-      const { error: updateError } = await supabase
-        .from('proxies')
-        .update({
-          is_used: true,
-          used_by: user?.id,
-          used_at: new Date().toISOString()
-        })
-        .eq('id', proxy.id);
-
-      if (updateError) throw updateError;
-
-      await navigator.clipboard.writeText(proxy.proxy_string);
-      toast.success('IP copied and removed from database');
-
-      // Remove from local state
-      setProxies(prev => prev.filter(p => p.id !== proxy.id));
-
-      // Delete from database
-      await supabase.from('proxies').delete().eq('id', proxy.id);
-
-      // Log usage if this is the last proxy being copied
-      if (proxies.length === 1) {
-        await supabase.from('usage_logs').insert({
-          user_id: user?.id,
-          amount: amount
-        });
-        await fetchTodayUsage();
-      }
-    } catch (error) {
-      toast.error('Error copying IP');
-      console.error('Error copying proxy:', error);
-    }
-  };
-
-  const copyAllProxies = async () => {
+  const markProxiesAsUsed = async () => {
     if (proxies.length === 0) return;
 
     try {
-      // Check if all proxies are still available
       const proxyIds = proxies.map(p => p.id);
-      const { data: currentProxies, error } = await supabase
-        .from('proxies')
-        .select('*')
-        .in('id', proxyIds)
-        .eq('is_used', false);
-
-      if (error) throw error;
-
-      if (!currentProxies || currentProxies.length !== proxies.length) {
-        toast.error('Some IPs have been used by others. Please generate again.');
-        return;
-      }
-
+      
       // Mark all as used
       const { error: updateError } = await supabase
         .from('proxies')
@@ -168,12 +105,6 @@ export const Home: React.FC = () => {
 
       if (updateError) throw updateError;
 
-      // Copy all to clipboard
-      const allProxies = proxies.map(p => p.proxy_string).join('\n');
-      await navigator.clipboard.writeText(allProxies);
-      
-      toast.success(`${proxies.length} IPs copied and removed from database`);
-
       // Delete from database
       await supabase.from('proxies').delete().in('id', proxyIds);
 
@@ -183,11 +114,63 @@ export const Home: React.FC = () => {
         amount: proxies.length
       });
 
-      setProxies([]);
       await fetchTodayUsage();
     } catch (error) {
-      toast.error('Error copying all IPs');
-      console.error('Error copying all proxies:', error);
+      console.error('Error marking proxies as used:', error);
+    }
+  };
+
+  const downloadTXT = async () => {
+    if (proxies.length === 0) return;
+
+    try {
+      const proxyText = proxies.map(p => p.proxy_string).join('\n');
+      const blob = new Blob([proxyText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `proxies_${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      await markProxiesAsUsed();
+      setProxies([]);
+      toast.success('TXT file downloaded and IPs removed from database');
+    } catch (error) {
+      toast.error('Error downloading TXT file');
+      console.error('Error downloading TXT:', error);
+    }
+  };
+
+  const downloadExcel = async () => {
+    if (proxies.length === 0) return;
+
+    try {
+      // Create CSV content (Excel compatible)
+      const csvHeader = 'Proxy\n';
+      const csvContent = proxies.map(p => p.proxy_string).join('\n');
+      const csvData = csvHeader + csvContent;
+      
+      const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `proxies_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      await markProxiesAsUsed();
+      setProxies([]);
+      toast.success('Excel file downloaded and IPs removed from database');
+    } catch (error) {
+      toast.error('Error downloading Excel file');
+      console.error('Error downloading Excel:', error);
     }
   };
 
@@ -265,46 +248,39 @@ export const Home: React.FC = () => {
               <h2 className="text-lg font-semibold text-gray-900">
                 Generated IPs ({proxies.length})
               </h2>
-              <button
-                onClick={copyAllProxies}
-                className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-              >
-                <Download size={16} />
-                <span>Copy All</span>
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={downloadTXT}
+                  className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                >
+                  <FileText size={16} />
+                  <span>Download TXT</span>
+                </button>
+                <button
+                  onClick={downloadExcel}
+                  className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  <FileSpreadsheet size={16} />
+                  <span>Download Excel</span>
+                </button>
+              </div>
             </div>
             
-            <div className="space-y-2">
-              {proxies.map((proxy, index) => (
-                <div
-                  key={proxy.id}
-                  className="flex items-center justify-between bg-gray-50 rounded-lg p-3 border"
-                >
-                  <div className="flex items-center space-x-3">
-                    <span className="text-sm font-medium text-gray-500 w-8">
-                      {index + 1}.
-                    </span>
-                    <code className="text-sm font-mono text-gray-800 bg-white px-2 py-1 rounded border select-none">
-                      {proxy.proxy_string}
-                    </code>
-                  </div>
-                  <button
-                    onClick={() => copyProxy(proxy)}
-                    className="flex items-center space-x-2 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors text-sm"
-                  >
-                    <Copy size={14} />
-                    <span>Copy</span>
-                  </button>
-                </div>
-              ))}
+            {/* Single box containing all proxies */}
+            <div className="bg-gray-50 rounded-lg p-4 border">
+              <div className="max-h-96 overflow-y-auto">
+                <pre className="text-sm font-mono text-gray-800 whitespace-pre-wrap break-all">
+                  {proxies.map(proxy => proxy.proxy_string).join('\n')}
+                </pre>
+              </div>
             </div>
 
             <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-md p-3">
               <div className="flex items-center">
                 <AlertTriangle className="h-4 w-4 text-yellow-400 mr-2" />
                 <p className="text-yellow-700 text-sm">
-                  <strong>Warning:</strong> IPs will be deleted from the database after copying. 
-                  Make sure to copy the IPs you need.
+                  <strong>Warning:</strong> IPs will be deleted from the database after downloading. 
+                  Make sure to download the IPs you need.
                 </p>
               </div>
             </div>
